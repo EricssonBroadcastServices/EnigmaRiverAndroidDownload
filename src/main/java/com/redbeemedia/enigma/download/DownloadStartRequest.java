@@ -1,5 +1,6 @@
 package com.redbeemedia.enigma.download;
 
+import com.redbeemedia.enigma.core.format.IMediaFormatSelector;
 import com.redbeemedia.enigma.core.session.ISession;
 
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ import java.util.UUID;
 public final class DownloadStartRequest {
     private final String assetId;
     private final ISession session;
+    private IMediaFormatSelector mediaFormatSelector = null;
     private VideoDownloadable videoTrack = null;
     private final List<AudioDownloadable> audioTracks = new ArrayList<>();
     private final List<SubtitleDownloadable> subtitleTracks = new ArrayList<>();
@@ -41,7 +43,20 @@ public final class DownloadStartRequest {
         return this;
     }
 
+    public DownloadStartRequest setMediaFormatSelector(IMediaFormatSelector mediaFormatSelector) {
+        this.mediaFormatSelector = mediaFormatSelector;
+        return this;
+    }
+
+    public IMediaFormatSelector getMediaFormatSelector() {
+        return mediaFormatSelector;
+    }
+
     public String getContentId() {
         return UUID.randomUUID().toString();
+    }
+
+    public VideoDownloadable getVideo() {
+        return videoTrack;
     }
 }
