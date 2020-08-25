@@ -4,6 +4,7 @@ import com.redbeemedia.enigma.core.format.IMediaFormatSelector;
 import com.redbeemedia.enigma.core.session.ISession;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -58,5 +59,23 @@ public final class DownloadStartRequest {
 
     public VideoDownloadable getVideo() {
         return videoTrack;
+    }
+
+    public List<AudioDownloadable> getAudios() {
+        return Collections.unmodifiableList(audioTracks);
+    }
+
+    public List<SubtitleDownloadable> getSubtitles() {
+        return Collections.unmodifiableList(subtitleTracks);
+    }
+
+    public void setAudios(List<AudioDownloadable> audios) {
+        this.audioTracks.clear();
+        this.audioTracks.addAll(audios);
+    }
+
+    public void setSubtitles(List<SubtitleDownloadable> subtitles) {
+        this.subtitleTracks.clear();
+        this.subtitleTracks.addAll(subtitles);
     }
 }
