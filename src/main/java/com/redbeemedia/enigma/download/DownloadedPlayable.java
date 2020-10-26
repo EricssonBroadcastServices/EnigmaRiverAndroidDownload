@@ -51,10 +51,18 @@ public class DownloadedPlayable implements IAssetPlayable {
     }
 
     /**
+     * @return The stored DRM licence or null if the content is not DRM-protected.
+     */
+    public IDrmLicence getDrmLicence() {
+        return downloadData.getDrmLicence();
+    }
+
+    /**
      * <h3>NOTE</h3>
      * <p>This interface is not part of the public API.</p>
      */
     public interface IInternalDownloadData extends Parcelable {
         String getAssetId();
+        IDrmLicence getDrmLicence();
     }
 }
