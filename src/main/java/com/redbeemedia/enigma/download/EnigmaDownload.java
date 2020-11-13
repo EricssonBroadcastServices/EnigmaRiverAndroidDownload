@@ -13,6 +13,7 @@ import com.redbeemedia.enigma.core.util.HandlerWrapper;
 import com.redbeemedia.enigma.core.util.IHandler;
 import com.redbeemedia.enigma.core.util.ProxyCallback;
 import com.redbeemedia.enigma.core.util.UrlPath;
+import com.redbeemedia.enigma.download.assetdownload.IAssetDownload;
 import com.redbeemedia.enigma.download.resulthandler.IDownloadStartResultHandler;
 import com.redbeemedia.enigma.download.resulthandler.IResultHandler;
 
@@ -104,6 +105,22 @@ public final class EnigmaDownload implements IEnigmaDownload {
         IResultHandler<Void> proxiedResultHandler = ProxyCallback.createCallbackOnThread(handler, IResultHandler.class, resultHandler);
         removeDownloadedAsset(downloadedPlayable, proxiedResultHandler);
     }
+
+    @Override
+    public void getDownloadsInProgress(IResultHandler<List<IAssetDownload>> resultHandler) {
+        impl().getDownloadsInProgress(resultHandler);
+    }
+
+    @Override
+    public void getDownloadsInProgress(IResultHandler<List<IAssetDownload>> resultHandler, Handler handler) {
+        getDownloadsInProgress(resultHandler, new HandlerWrapper(handler));
+    }
+
+    /*package-protected*/ void getDownloadsInProgress(IResultHandler<List<IAssetDownload>> resultHandler, IHandler handler) {
+        IResultHandler<List<IAssetDownload>> proxiedResultHandler = ProxyCallback.createCallbackOnThread(handler, IResultHandler.class, resultHandler);
+        getDownloadsInProgress(proxiedResultHandler);
+    }
+
 
     private static IEnigmaDownloadImplementation implementation = null;
 

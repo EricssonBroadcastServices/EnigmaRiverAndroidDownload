@@ -3,6 +3,7 @@ package com.redbeemedia.enigma.download;
 import android.os.Handler;
 
 import com.redbeemedia.enigma.core.session.ISession;
+import com.redbeemedia.enigma.download.assetdownload.IAssetDownload;
 import com.redbeemedia.enigma.download.resulthandler.IDownloadStartResultHandler;
 import com.redbeemedia.enigma.download.resulthandler.IResultHandler;
 
@@ -20,4 +21,7 @@ public interface IEnigmaDownload {
 
     void removeDownloadedAsset(DownloadedPlayable downloadedPlayable, IResultHandler<Void> resultHandler);
     void removeDownloadedAsset(DownloadedPlayable downloadedPlayable, IResultHandler<Void> resultHandler, Handler handler);
+
+    void getDownloadsInProgress(IResultHandler<List<IAssetDownload>> resultHandler);
+    void getDownloadsInProgress(IResultHandler<List<IAssetDownload>> resultHandler, Handler handler);
 }
