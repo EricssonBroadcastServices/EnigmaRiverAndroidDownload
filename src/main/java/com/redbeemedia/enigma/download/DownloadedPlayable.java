@@ -50,6 +50,10 @@ public class DownloadedPlayable implements IAssetPlayable {
         return downloadData.getAssetId();
     }
 
+    public Long getFileSize() {
+        return downloadData.getFileSize();
+    }
+
     /**
      * @return The stored DRM licence or null if the content is not DRM-protected.
      */
@@ -64,5 +68,6 @@ public class DownloadedPlayable implements IAssetPlayable {
     public interface IInternalDownloadData extends Parcelable {
         String getAssetId();
         IDrmLicence getDrmLicence();
+        Long getFileSize();
     }
 }
