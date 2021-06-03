@@ -1,5 +1,6 @@
 package com.redbeemedia.enigma.download;
 
+import android.content.Context;
 import android.os.Handler;
 
 import com.redbeemedia.enigma.core.businessunit.IBusinessUnit;
@@ -62,18 +63,18 @@ public final class EnigmaDownload implements IEnigmaDownload {
     }
 
     @Override
-    public void startAssetDownload(DownloadStartRequest request, IDownloadStartResultHandler resultHandler) {
-        impl().startAssetDownload(businessUnit, request, resultHandler);
+    public void startAssetDownload(Context context, DownloadStartRequest request, IDownloadStartResultHandler resultHandler) {
+        impl().startAssetDownload(context, businessUnit, request, resultHandler);
     }
 
     @Override
-    public void startAssetDownload(DownloadStartRequest request, IDownloadStartResultHandler resultHandler, Handler handler) {
-        startAssetDownload(request, resultHandler, new HandlerWrapper(handler));
+    public void startAssetDownload(Context context, DownloadStartRequest request, IDownloadStartResultHandler resultHandler, Handler handler) {
+        startAssetDownload(context, request, resultHandler, new HandlerWrapper(handler));
     }
 
-    /*package-protected*/ void startAssetDownload(DownloadStartRequest request, IDownloadStartResultHandler resultHandler, IHandler handler) {
+    /*package-protected*/ void startAssetDownload(Context context, DownloadStartRequest request, IDownloadStartResultHandler resultHandler, IHandler handler) {
         IDownloadStartResultHandler proxiedResultHandler = ProxyCallback.createCallbackOnThread(handler, IDownloadStartResultHandler.class, resultHandler);
-        startAssetDownload(request, proxiedResultHandler);
+        startAssetDownload(context, request, proxiedResultHandler);
     }
 
     @Override

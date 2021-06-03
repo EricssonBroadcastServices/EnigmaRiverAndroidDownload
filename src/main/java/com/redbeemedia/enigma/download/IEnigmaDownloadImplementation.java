@@ -1,5 +1,7 @@
 package com.redbeemedia.enigma.download;
 
+import android.content.Context;
+
 import com.redbeemedia.enigma.core.businessunit.IBusinessUnit;
 import com.redbeemedia.enigma.download.assetdownload.IAssetDownload;
 import com.redbeemedia.enigma.download.resulthandler.IDownloadStartResultHandler;
@@ -12,7 +14,7 @@ import java.util.List;
  * <p>This interface is not part of the public API.</p>
  */
 public interface IEnigmaDownloadImplementation {
-    void startAssetDownload(IBusinessUnit businessUnit, DownloadStartRequest request, IDownloadStartResultHandler resultHandler);
+    void startAssetDownload(Context context, IBusinessUnit businessUnit, DownloadStartRequest request, IDownloadStartResultHandler resultHandler);
 
     void getDownloadedAssets(IResultHandler<List<DownloadedPlayable>> resultHandler);
 
