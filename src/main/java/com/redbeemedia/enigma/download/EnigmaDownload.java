@@ -31,6 +31,37 @@ public final class EnigmaDownload implements IEnigmaDownload {
     }
 
     @Override
+    public void isAvailableToDownload(String assetId, ISession session, IResultHandler<Boolean> resultHandler) {
+        try {
+            UrlPath endpoint = businessUnit.getApiBaseUrl("v2").append("/entitlement/").append(assetId).append("/downloadinfo");
+            EnigmaRiverContext.getHttpHandler().doHttp(endpoint.toURL(), new AuthenticatedExposureApiCall("GET", session), new JsonObjectResponseHandler() {
+                @Override
+                protected void onSuccess(JSONObject jsonObject) throws JSONException {
+                    resultHandler.onResult(true);
+                }
+
+                @Override
+                protected void onError(EnigmaError error) {
+                    resultHandler.onResult(false);
+                }
+            });
+        } catch (Exception e) {
+            resultHandler.onError(new UnexpectedError(e));
+            return;
+        }
+    }
+
+    @Override
+    public void isAvailableToDownload(String assetId, ISession session, IResultHandler<Boolean> resultHandler, Handler handler) {
+        isAvailableToDownload(assetId, session, resultHandler, new HandlerWrapper(handler));
+    }
+
+    /*package-protected*/ void isAvailableToDownload(String assetId, ISession session, IResultHandler<Boolean> resultHandler, IHandler handler) {
+        IResultHandler<Boolean> proxiedResultHandler = ProxyCallback.createCallbackOnThread(handler, IResultHandler.class, resultHandler);
+        isAvailableToDownload(assetId, session, proxiedResultHandler);
+    }
+
+    @Override
     public void getDownloadableInfo(String assetId, ISession session, IResultHandler<IDownloadableInfo> resultHandler) {
         try {
             UrlPath endpoint = businessUnit.getApiBaseUrl("v2").append("/entitlement/").append(assetId).append("/downloadinfo");

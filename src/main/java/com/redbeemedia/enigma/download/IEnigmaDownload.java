@@ -11,6 +11,9 @@ import com.redbeemedia.enigma.download.resulthandler.IResultHandler;
 import java.util.List;
 
 public interface IEnigmaDownload {
+    void isAvailableToDownload(String assetId, ISession session, IResultHandler<Boolean> resultHandler);
+    void isAvailableToDownload(String assetId, ISession session, IResultHandler<Boolean> resultHandler, Handler handler);
+
     void getDownloadableInfo(String assetId, ISession session, IResultHandler<IDownloadableInfo> resultHandler);
     void getDownloadableInfo(String assetId, ISession session, IResultHandler<IDownloadableInfo> resultHandler, Handler handler);
 
