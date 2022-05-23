@@ -11,6 +11,9 @@ import com.redbeemedia.enigma.download.resulthandler.IResultHandler;
 import java.util.List;
 
 public interface IEnigmaDownload {
+    void isExpired(String assetId, ISession session, IResultHandler<Boolean> resultHandler);
+    void getExpiryTime(String assetId, ISession session, IResultHandler<Long> resultHandler);
+
     void isAvailableToDownload(String assetId, ISession session, IResultHandler<Boolean> resultHandler);
     void isAvailableToDownload(String assetId, ISession session, IResultHandler<Boolean> resultHandler, Handler handler);
 

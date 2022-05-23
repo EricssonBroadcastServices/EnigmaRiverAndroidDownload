@@ -31,6 +31,54 @@ public final class EnigmaDownload implements IEnigmaDownload {
     }
 
     @Override
+    public void isExpired(String assetId, ISession session, IResultHandler<Boolean> resultHandler) {
+        try {
+            UrlPath endpoint = businessUnit.getApiBaseUrl("v2").append("/entitlement/").append(assetId).append("/download");
+            EnigmaRiverContext.getHttpHandler().doHttp(endpoint.toURL(), new AuthenticatedExposureApiCall("GET", session), new JsonObjectResponseHandler() {
+                @Override
+                protected void onSuccess(JSONObject jsonObject) {
+                    long playTokenExpirationInSeconds = jsonObject.optLong("playTokenExpiration", -1);
+                    if (playTokenExpirationInSeconds != -1) {
+                        long playTokenExpirationInMillis = playTokenExpirationInSeconds * 1000;
+                        boolean isExpired = System.currentTimeMillis() > playTokenExpirationInMillis;
+                        resultHandler.onResult(isExpired);
+                    } else {
+                        resultHandler.onResult(true);
+                    }
+                }
+
+                @Override
+                protected void onError(EnigmaError error) {
+                    resultHandler.onError(new UnexpectedError(error));
+                }
+            });
+        } catch (Exception e) {
+            resultHandler.onError(new UnexpectedError(e));
+        }
+    }
+
+    @Override
+    public void getExpiryTime(String assetId, ISession session, IResultHandler<Long> resultHandler) {
+        try {
+            UrlPath endpoint = businessUnit.getApiBaseUrl("v2").append("/entitlement/").append(assetId).append("/download");
+            EnigmaRiverContext.getHttpHandler().doHttp(endpoint.toURL(), new AuthenticatedExposureApiCall("GET", session), new JsonObjectResponseHandler() {
+                @Override
+                protected void onSuccess(JSONObject jsonObject) {
+                    long playTokenExpirationInSeconds = jsonObject.optLong("playTokenExpiration", -1);
+                    resultHandler.onResult(playTokenExpirationInSeconds);
+                }
+
+                @Override
+                protected void onError(EnigmaError error) {
+                    resultHandler.onError(new UnexpectedError(error));
+                }
+            });
+        } catch (Exception e) {
+            resultHandler.onError(new UnexpectedError(e));
+        }
+    }
+
+    @Override
     public void isAvailableToDownload(String assetId, ISession session, IResultHandler<Boolean> resultHandler) {
         try {
             UrlPath endpoint = businessUnit.getApiBaseUrl("v2").append("/entitlement/").append(assetId).append("/downloadinfo");
