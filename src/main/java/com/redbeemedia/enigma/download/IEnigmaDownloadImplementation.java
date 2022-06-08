@@ -18,7 +18,11 @@ public interface IEnigmaDownloadImplementation {
 
     void getDownloadedAssets(IResultHandler<List<DownloadedPlayable>> resultHandler);
 
+    void getDownloadedAssets(String userId,IResultHandler<List<DownloadedPlayable>> resultHandler);
+
     void removeDownloadedAsset(DownloadedPlayable.IInternalDownloadData downloadedData, IResultHandler<Void> resultHandler);
 
     void getDownloadsInProgress(IResultHandler<List<IAssetDownload>> resultHandler);
+
+    void getDownloadsInProgress(String userId,IResultHandler<List<IAssetDownload>> resultHandler);
 }

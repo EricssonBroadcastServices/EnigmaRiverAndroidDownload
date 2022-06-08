@@ -157,6 +157,21 @@ public final class EnigmaDownload implements IEnigmaDownload {
     }
 
     @Override
+    public void getDownloadedAssets(String userId, IResultHandler<List<DownloadedPlayable>> resultHandler) {
+        impl().getDownloadedAssets(userId, resultHandler);
+    }
+
+    @Override
+    public void getDownloadedAssets(String userId, IResultHandler<List<DownloadedPlayable>> resultHandler, Handler handler) {
+        getDownloadedAssets(userId, resultHandler, new HandlerWrapper(handler));
+    }
+
+    /*package-protected*/ void getDownloadedAssets(String userId, IResultHandler<List<DownloadedPlayable>> resultHandler, IHandler handler) {
+        IResultHandler<List<DownloadedPlayable>> proxiedResultHandler = ProxyCallback.createCallbackOnThread(handler, IResultHandler.class, resultHandler);
+        getDownloadedAssets(userId, proxiedResultHandler);
+    }
+
+    @Override
     public void getDownloadedAssets(IResultHandler<List<DownloadedPlayable>> resultHandler) {
         impl().getDownloadedAssets(resultHandler);
     }
@@ -184,6 +199,21 @@ public final class EnigmaDownload implements IEnigmaDownload {
     /*package-protected*/ void removeDownloadedAsset(DownloadedPlayable downloadedPlayable, IResultHandler<Void> resultHandler, IHandler handler) {
         IResultHandler<Void> proxiedResultHandler = ProxyCallback.createCallbackOnThread(handler, IResultHandler.class, resultHandler);
         removeDownloadedAsset(downloadedPlayable, proxiedResultHandler);
+    }
+
+    @Override
+    public void getDownloadsInProgress(String userId, IResultHandler<List<IAssetDownload>> resultHandler) {
+        impl().getDownloadsInProgress(userId, resultHandler);
+    }
+
+    @Override
+    public void getDownloadsInProgress(String userId, IResultHandler<List<IAssetDownload>> resultHandler, Handler handler) {
+        getDownloadsInProgress(userId,resultHandler, new HandlerWrapper(handler));
+    }
+
+    /*package-protected*/ void getDownloadsInProgress(String userId, IResultHandler<List<IAssetDownload>> resultHandler, IHandler handler) {
+        IResultHandler<List<IAssetDownload>> proxiedResultHandler = ProxyCallback.createCallbackOnThread(handler, IResultHandler.class, resultHandler);
+        getDownloadsInProgress(userId, proxiedResultHandler);
     }
 
     @Override
