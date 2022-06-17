@@ -23,8 +23,8 @@ public interface IEnigmaDownload {
     void startAssetDownload(Context context, DownloadStartRequest request, IDownloadStartResultHandler resultHandler);
     void startAssetDownload(Context context, DownloadStartRequest request, IDownloadStartResultHandler resultHandler, Handler handler);
 
-    void getDownloadedAssets(String userId, IResultHandler<List<DownloadedPlayable>> resultHandler);
-    void getDownloadedAssets(String userId, IResultHandler<List<DownloadedPlayable>> resultHandler, Handler handler);
+    void getDownloadedAssets(ISession session, IResultHandler<List<DownloadedPlayable>> resultHandler);
+    void getDownloadedAssets(ISession session, IResultHandler<List<DownloadedPlayable>> resultHandler, Handler handler);
 
     void getDownloadedAssets(IResultHandler<List<DownloadedPlayable>> resultHandler);
     void getDownloadedAssets(IResultHandler<List<DownloadedPlayable>> resultHandler, Handler handler);
@@ -32,8 +32,8 @@ public interface IEnigmaDownload {
     void removeDownloadedAsset(DownloadedPlayable downloadedPlayable, IResultHandler<Void> resultHandler);
     void removeDownloadedAsset(DownloadedPlayable downloadedPlayable, IResultHandler<Void> resultHandler, Handler handler);
 
-    void getDownloadsInProgress(String userId, IResultHandler<List<IAssetDownload>> resultHandler);
-    void getDownloadsInProgress(String userId, IResultHandler<List<IAssetDownload>> resultHandler, Handler handler);
+    void getDownloadsInProgress(ISession session, IResultHandler<List<IAssetDownload>> resultHandler);
+    void getDownloadsInProgress(ISession session, IResultHandler<List<IAssetDownload>> resultHandler, Handler handler);
 
     void getDownloadsInProgress(IResultHandler<List<IAssetDownload>> resultHandler);
     void getDownloadsInProgress(IResultHandler<List<IAssetDownload>> resultHandler, Handler handler);
