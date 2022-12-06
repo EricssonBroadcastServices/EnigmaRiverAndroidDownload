@@ -34,7 +34,8 @@ public class EnigmaDownloadContext {
     public static class Initialization implements IModuleInitializationSettings {
         private IMediaFormatSelector defaultDownloadFormatSelector = new SimpleMediaFormatSelector(
                 EnigmaMediaFormat.DASH().unenc(),
-                EnigmaMediaFormat.DASH().widevine()
+                EnigmaMediaFormat.DASH().widevine(),
+                EnigmaMediaFormat.MP3().unenc()
         );
 
 
