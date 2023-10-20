@@ -3,6 +3,8 @@ package com.redbeemedia.enigma.download;
 import android.content.Context;
 import android.os.Handler;
 
+import androidx.annotation.NonNull;
+
 import com.redbeemedia.enigma.core.businessunit.IBusinessUnit;
 import com.redbeemedia.enigma.core.context.EnigmaRiverContext;
 import com.redbeemedia.enigma.core.error.EnigmaError;
@@ -15,15 +17,26 @@ import com.redbeemedia.enigma.core.util.IHandler;
 import com.redbeemedia.enigma.core.util.ProxyCallback;
 import com.redbeemedia.enigma.core.util.UrlPath;
 import com.redbeemedia.enigma.download.assetdownload.IAssetDownload;
+import com.redbeemedia.enigma.download.resulthandler.BaseResultHandler;
 import com.redbeemedia.enigma.download.resulthandler.IDownloadStartResultHandler;
 import com.redbeemedia.enigma.download.resulthandler.IResultHandler;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 public final class EnigmaDownload implements IEnigmaDownload {
+    private static final String EXPIRATION_TIME = "EXPIRATION_TIME";
+    private static final String PUBLICATION_END = "PUBLICATION_END";
+    private static final int SAVE_FORMAT_VERSION = 3;
+
     private final IBusinessUnit businessUnit;
 
     public EnigmaDownload(IBusinessUnit businessUnit) {
@@ -32,49 +45,92 @@ public final class EnigmaDownload implements IEnigmaDownload {
 
     @Override
     public void isExpired(String assetId, ISession session, IResultHandler<Boolean> resultHandler) {
-        try {
-            UrlPath endpoint = businessUnit.getApiBaseUrl("v2").append("/entitlement/").append(assetId).append("/download");
-            EnigmaRiverContext.getHttpHandler().doHttp(endpoint.toURL(), new AuthenticatedExposureApiCall("GET", session), new JsonObjectResponseHandler() {
-                @Override
-                protected void onSuccess(JSONObject jsonObject) {
-                    long playTokenExpirationInSeconds = jsonObject.optLong("playTokenExpiration", -1);
-                    if (playTokenExpirationInSeconds != -1) {
-                        long playTokenExpirationInMillis = playTokenExpirationInSeconds * 1000;
-                        boolean isExpired = System.currentTimeMillis() > playTokenExpirationInMillis;
-                        resultHandler.onResult(isExpired);
-                    } else {
-                        resultHandler.onResult(true);
-                    }
+        getExpiryTime(assetId, session, new BaseResultHandler<Long>() {
+            @Override
+            public void onResult(Long expiryTime) {
+                if (expiryTime != -1) {
+                    boolean isExpired = System.currentTimeMillis() > expiryTime;
+                    resultHandler.onResult(isExpired);
+                } else {
+                    resultHandler.onResult(true);
                 }
+            }
 
-                @Override
-                protected void onError(EnigmaError error) {
-                    resultHandler.onError(new UnexpectedError(error));
-                }
-            });
-        } catch (Exception e) {
-            resultHandler.onError(new UnexpectedError(e));
-        }
+            @Override
+            public void onError(EnigmaError error) {
+                resultHandler.onError(new UnexpectedError(error));
+            }
+        });
     }
 
     @Override
     public void getExpiryTime(String assetId, ISession session, IResultHandler<Long> resultHandler) {
         try {
-            UrlPath endpoint = businessUnit.getApiBaseUrl("v2").append("/entitlement/").append(assetId).append("/download");
+            JSONObject storedJsonObject = getStoredJsonData(assetId);
+            long playTokenExpirationInSeconds = storedJsonObject.optLong(EXPIRATION_TIME, -1);
+            UrlPath endpoint = businessUnit.getApiBaseUrl("v2").append("/entitlement/").append(assetId).append("/downloadverified");
             EnigmaRiverContext.getHttpHandler().doHttp(endpoint.toURL(), new AuthenticatedExposureApiCall("GET", session), new JsonObjectResponseHandler() {
-                @Override
-                protected void onSuccess(JSONObject jsonObject) {
-                    long playTokenExpirationInSeconds = jsonObject.optLong("playTokenExpiration", -1);
-                    resultHandler.onResult(playTokenExpirationInSeconds);
+                protected void onError(EnigmaError error) {
+                    getStoredExpiryTime(assetId, resultHandler);
                 }
 
-                @Override
-                protected void onError(EnigmaError error) {
-                    resultHandler.onError(new UnexpectedError(error));
+                protected void onSuccess(JSONObject jsonObject) {
+                    try {
+                        String publicationEnd = jsonObject.optString("publicationEnd", "");
+                        if (!publicationEnd.isEmpty()) {
+                            storedJsonObject.put(PUBLICATION_END, publicationEnd);
+                            EnigmaDownloadContext.getMetadataManager().store(assetId, getJsonBytes(storedJsonObject));
+                        }
+                        calculateMinimumExpiryDate(resultHandler, playTokenExpirationInSeconds, publicationEnd);
+                    } catch (Exception e) {
+                        getStoredExpiryTime(assetId, resultHandler);
+                    }
                 }
             });
         } catch (Exception e) {
-            resultHandler.onError(new UnexpectedError(e));
+            getStoredExpiryTime(assetId, resultHandler);
+        }
+    }
+
+    private void getStoredExpiryTime(String assetId, IResultHandler<Long> resultHandler) {
+        try {
+            JSONObject storedJsonObject = getStoredJsonData(assetId);
+            long playTokenExpirationInSeconds = storedJsonObject.optLong(EXPIRATION_TIME,-1);
+            String publicationEnd = storedJsonObject.optString(PUBLICATION_END,"");
+            calculateMinimumExpiryDate(resultHandler, playTokenExpirationInSeconds, publicationEnd);
+        } catch (Exception exception) {
+            resultHandler.onError(new UnexpectedError(exception));
+        }
+    }
+
+    @NonNull
+    private JSONObject getStoredJsonData(String assetId) throws JSONException {
+        byte[] data = EnigmaDownloadContext.getMetadataManager().load(assetId);
+        String jsonData = new String(data, 1, data.length - 1, StandardCharsets.UTF_8);
+        return new JSONObject(jsonData);
+    }
+
+    public byte[] getJsonBytes(JSONObject jsonObject) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        baos.write(SAVE_FORMAT_VERSION);
+        byte[] jsonBytes = jsonObject.toString().getBytes(StandardCharsets.UTF_8);
+        baos.write(jsonBytes, 0, jsonBytes.length);
+        return baos.toByteArray();
+    }
+
+    private void calculateMinimumExpiryDate(IResultHandler<Long> resultHandler, long playTokenExpirationInSeconds, String publicationEnd) throws ParseException {
+        if (!publicationEnd.trim().isEmpty()) {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+            dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+            Date publicationEndDate = dateFormat.parse(publicationEnd);
+            long publicationEndDateTimeStamp = publicationEndDate.getTime();
+            long playTokenExpirationInMillis = playTokenExpirationInSeconds;
+            if (playTokenExpirationInSeconds != -1) {
+                playTokenExpirationInMillis = playTokenExpirationInSeconds * 1000;
+            }
+            resultHandler.onResult(Math.min(playTokenExpirationInMillis, publicationEndDateTimeStamp));
+        }else{
+            resultHandler.onResult(-1L);
         }
     }
 

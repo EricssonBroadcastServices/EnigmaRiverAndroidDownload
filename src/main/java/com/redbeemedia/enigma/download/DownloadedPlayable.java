@@ -15,7 +15,7 @@ public class DownloadedPlayable implements IAssetPlayable {
 
     @Override
     public void useWith(IPlayableHandler playableHandler) {
-        playableHandler.startUsingDownloadData(downloadData);
+        playableHandler.startUsingDownloadData(downloadData, downloadData.getPlaySessionId(),downloadData.getAnalyticsBaseUrl(),downloadData.getCdnProvider(),downloadData.getDuration());
     }
 
     /*package-protected*/ IInternalDownloadData getDownloadData() {
@@ -72,7 +72,12 @@ public class DownloadedPlayable implements IAssetPlayable {
     public interface IInternalDownloadData extends Parcelable {
         String getAssetId();
         IDrmLicence getDrmLicence();
+        String getPlaySessionId();
+        String getCdnProvider();
+        int getDuration();
+        String getAnalyticsBaseUrl();
         long getPlayTokenExpiration();
+        String getPublicationEnd();
         Long getFileSize();
     }
 }
