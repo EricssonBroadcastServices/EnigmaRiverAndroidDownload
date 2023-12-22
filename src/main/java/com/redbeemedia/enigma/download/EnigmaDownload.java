@@ -10,6 +10,7 @@ import com.redbeemedia.enigma.core.context.EnigmaRiverContext;
 import com.redbeemedia.enigma.core.error.EnigmaError;
 import com.redbeemedia.enigma.core.error.UnexpectedError;
 import com.redbeemedia.enigma.core.http.AuthenticatedExposureApiCall;
+import com.redbeemedia.enigma.core.http.HttpStatus;
 import com.redbeemedia.enigma.core.json.JsonObjectResponseHandler;
 import com.redbeemedia.enigma.core.session.ISession;
 import com.redbeemedia.enigma.core.util.HandlerWrapper;
@@ -25,6 +26,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -74,6 +76,15 @@ public final class EnigmaDownload implements IEnigmaDownload {
                     getStoredExpiryTime(assetId, resultHandler);
                 }
 
+                @Override
+                public void onResponse(HttpStatus status, InputStream inputStream) {
+                    if (status.getResponseCode() == 403) {
+                        resultHandler.onResult(-1L);
+                    } else {
+                        super.onResponse(status, inputStream);
+                    }
+                }
+
                 protected void onSuccess(JSONObject jsonObject) {
                     try {
                         String publicationEnd = jsonObject.optString("publicationEnd", "");
@@ -105,9 +116,14 @@ public final class EnigmaDownload implements IEnigmaDownload {
 
     @NonNull
     private JSONObject getStoredJsonData(String assetId) throws JSONException {
-        byte[] data = EnigmaDownloadContext.getMetadataManager().load(assetId);
-        String jsonData = new String(data, 1, data.length - 1, StandardCharsets.UTF_8);
-        return new JSONObject(jsonData);
+        try {
+            byte[] data = EnigmaDownloadContext.getMetadataManager().load(assetId);
+            String jsonData = new String(data, 1, data.length - 1, StandardCharsets.UTF_8);
+            return new JSONObject(jsonData);
+        } catch (Exception e){
+            // if stored json data is empty
+            return new JSONObject();
+        }
     }
 
     public byte[] getJsonBytes(JSONObject jsonObject) {
