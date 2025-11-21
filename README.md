@@ -1,3 +1,3 @@
 # Download module
 
-The Enigma River download extension library, version r3.7.23.
+The Enigma River download extension library, version r3.7.24-BETA-1.
