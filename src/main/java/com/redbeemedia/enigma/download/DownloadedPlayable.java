@@ -3,6 +3,9 @@ package com.redbeemedia.enigma.download;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.redbeemedia.enigma.core.adapter.IEnigmaExternalPlayerAdapter;
+import com.redbeemedia.enigma.core.adapter.IEnigmaExternalPlayerDrmSession;
+import com.redbeemedia.enigma.core.error.EnigmaError;
 import com.redbeemedia.enigma.core.playable.IAssetPlayable;
 import com.redbeemedia.enigma.core.playable.IPlayableHandler;
 
@@ -25,6 +28,26 @@ public class DownloadedPlayable implements IAssetPlayable {
     @Override
     public int describeContents() {
         return 0;
+    }
+
+    public void prepareExternalAnalytics(IEnigmaExternalPlayerAdapter analyticsExternalAdapter, Runnable onPrepared) {
+        analyticsExternalAdapter.prepareForDownloadedAsset(
+                getAssetId(),
+                downloadData.getPlaySessionId(),
+                downloadData.getAnalyticsBaseUrl(),
+                downloadData.getCdnProvider(),
+                new IEnigmaExternalPlayerAdapter.PrepareCallback() {
+                    @Override
+                    public void onPrepared(String manifestUrl, IEnigmaExternalPlayerDrmSession drmsession) {
+                        onPrepared.run();
+                    }
+
+                    @Override
+                    public void onError(EnigmaError error) {
+                        onPrepared.run();
+                    }
+                }
+        );
     }
 
     @Override
